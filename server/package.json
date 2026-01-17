@@ -54,7 +54,7 @@
     "puppeteer": "^24.34.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "resend": "^4.5.1",
+    "resend": "^6.7.0",
     "rrweb": "^2.0.0-alpha.11",
     "sqlstring": "2.3.3",
     "stripe": "18.1.0",
