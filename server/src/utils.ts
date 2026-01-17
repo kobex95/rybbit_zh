@@ -4,6 +4,7 @@ import * as psl from "psl";
 import { db } from "./db/postgres/postgres.js";
 import { sites } from "./db/postgres/schema.js";
 
+// 桌面操作系统集合
 const desktopOS = new Set([
   "AIX",
   "macOS",
@@ -59,6 +60,7 @@ const desktopOS = new Set([
   "Fuchsia",
 ]);
 
+// 移动操作系统集合
 const mobileOS = new Set([
   "Android",
   "iOS",
@@ -85,6 +87,7 @@ const mobileOS = new Set([
   "Joli",
 ]);
 
+// 电视操作系统集合
 const tvOS = new Set([
   "Chromecast",
   "Chromecast Android",
@@ -94,41 +97,44 @@ const tvOS = new Set([
   "NetTV",
 ]);
 
+// 游戏操作系统集合
 const gamingOS = new Set(["PlayStation", "Xbox", "Nintendo"]);
 
+// 嵌入式操作系统集合
 const embeddedOS = new Set(["Windows IoT", "Contiki", "Raspbian", "Morph OS", "Pico", "NetRange"]);
 
+// 根据屏幕尺寸和用户代理获取设备类型
 export function getDeviceType(screenWidth: number, screenHeight: number, ua: UAParser.IResult): string {
   if (ua.os.name) {
     if (desktopOS.has(ua.os.name)) {
-      return "Desktop";
+      return "桌面";
     } else if (mobileOS.has(ua.os.name)) {
-      return "Mobile";
+      return "移动";
     } else if (tvOS.has(ua.os.name)) {
-      return "TV";
+      return "电视";
     } else if (gamingOS.has(ua.os.name)) {
-      return "Console";
+      return "游戏机";
     } else if (embeddedOS.has(ua.os.name)) {
-      return "Embedded";
+      return "嵌入式";
     }
   }
 
   const largerDimension = Math.max(screenWidth, screenHeight);
   const smallerDimension = Math.min(screenWidth, screenHeight);
   if (largerDimension > 1024) {
-    return "Desktop";
+    return "桌面";
   } else if (largerDimension > 768 && smallerDimension > 1024) {
-    return "Tablet";
+    return "平板";
   }
-  return "Mobile";
+  return "移动";
 }
 
-// Extract site ID from path
+// 从路径中提取站点ID
 export const extractSiteId = (path: string) => {
-  // Remove query parameters if present
+  // 如果存在查询参数则移除
   const pathWithoutQuery = path.split("?")[0];
 
-  // Handle route patterns:
+  // 处理路由模式:
   // /route/:site
   // /route/:sessionId/:site
   // /route/:userId/:site
@@ -139,29 +145,29 @@ export const extractSiteId = (path: string) => {
   return null;
 };
 
-// Cache for string ID to numeric ID lookups to avoid repeated DB queries
+// 字符串ID到数字ID查找的缓存，避免重复数据库查询
 const siteIdCache = new Map<string, number>();
 
-// Resolve a site identifier (string ID or numeric ID) to its numeric siteId
-// Returns the numeric siteId or null if not found
+// 将站点标识符（字符串ID或数字ID）解析为其数字siteId
+// 返回数字siteId，如果未找到则返回null
 export const resolveNumericSiteId = async (siteIdentifier: string): Promise<number | null> => {
-  // Check cache first
+  // 首先检查缓存
   if (siteIdCache.has(siteIdentifier)) {
     return siteIdCache.get(siteIdentifier)!;
   }
 
-  // Look up the string ID in the database
+  // 在数据库中查找字符串ID
   try {
     const site = await db.select({ siteId: sites.siteId }).from(sites).where(eq(sites.id, siteIdentifier)).limit(1);
 
     if (site.length > 0) {
       const numericId = site[0].siteId;
-      // Cache the result
+      // 缓存结果
       siteIdCache.set(siteIdentifier, numericId);
       return numericId;
     }
   } catch (error) {
-    console.error("Error resolving site ID:", error);
+    console.error("解析站点ID时出错:", error);
   }
 
   if (/^\d+$/.test(siteIdentifier)) {
@@ -171,12 +177,12 @@ export const resolveNumericSiteId = async (siteIdentifier: string): Promise<numb
   return null;
 };
 
-// Replace site ID in URL path with numeric ID
+// 用数字ID替换URL路径中的站点ID
 export const replacePathSiteId = (path: string, numericId: number): string => {
   const [pathPart, queryPart] = path.split("?");
   const segments = pathPart.split("/");
 
-  // Replace the last segment (which is the site ID)
+  // 替换最后一个段落（即站点ID）
   if (segments.length >= 2) {
     segments[segments.length - 1] = String(numericId);
   }
@@ -184,13 +190,13 @@ export const replacePathSiteId = (path: string, numericId: number): string => {
   return queryPart ? `${segments.join("/")}?${queryPart}` : segments.join("/");
 };
 
-// Normalizes a domain/hostname by removing all subdomain prefixes.
-// Accepts either a full URL or just a hostname.
+// 通过移除所有子域前缀来规范化域名/主机名
+// 接受完整URL或仅主机名
 export const normalizeOrigin = (input: string): string => {
   try {
     let hostname: string;
 
-    // If input looks like a URL, extract hostname; otherwise treat as hostname
+    // 如果输入看起来像URL，则提取主机名；否则视为主机名
     if (input.includes("://")) {
       hostname = new URL(input).hostname;
     } else {
@@ -199,28 +205,28 @@ export const normalizeOrigin = (input: string): string => {
 
     hostname = hostname.toLowerCase();
 
-    // Handle IP addresses and localhost - return as-is
+    // 处理IP地址和localhost - 原样返回
     if (hostname === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
       return hostname;
     }
 
-    // Use Public Suffix List to get the registrable domain
+    // 使用公共后缀列表获取可注册域名
     const parsed = psl.parse(hostname);
 
-    // If parsing failed or no domain found, fall back to simple logic
+    // 如果解析失败或未找到域名，则回退到简单逻辑
     if (parsed.error || !parsed.domain) {
       const parts = hostname.split(".");
       if (parts.length < 2) {
         return hostname;
       }
-      // Default fallback: take last 2 parts
+      // 默认回退：取最后2个部分
       return parts.slice(-2).join(".");
     }
 
-    // Return the registrable domain (domain + public suffix)
+    // 返回可注册域名（域名+公共后缀）
     return parsed.domain;
   } catch {
-    // Fallback for any errors: try simple domain extraction
+    // 任何错误的回退：尝试简单的域名提取
     try {
       let hostname = input.includes("://") ? new URL(input).hostname : input;
       hostname = hostname.toLowerCase();
@@ -237,15 +243,15 @@ export const normalizeOrigin = (input: string): string => {
   }
 };
 
-// Helper function to get IP address
+// 获取IP地址的辅助函数
 export const getIpAddress = (request: FastifyRequest): string => {
-  // Priority 1: Cloudflare header (already validated by CF)
+  // 优先级1: Cloudflare头部（已由CF验证）
   const cfConnectingIp = request.headers["cf-connecting-ip"];
   if (cfConnectingIp && typeof cfConnectingIp === "string") {
     return cfConnectingIp.trim();
   }
 
-  // Priority 2: X-Forwarded-For - just use the first IP
+  // 优先级2: X-Forwarded-For - 只使用第一个IP
   const forwardedFor = request.headers["x-forwarded-for"];
   if (forwardedFor && typeof forwardedFor === "string") {
     const ips = forwardedFor
@@ -253,7 +259,7 @@ export const getIpAddress = (request: FastifyRequest): string => {
       .map(ip => ip.trim())
       .filter(Boolean);
     if (ips.length > 0) {
-      // Always use the first IP - the original client
+      // 总是使用第一个IP - 原始客户端
       return ips[0];
     }
   }

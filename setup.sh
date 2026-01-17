@@ -1,29 +1,29 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status.
+# 如果命令以非零状态退出，则立即退出。
 set -e
 
-# Default values
+# 默认值
 USE_WEBSERVER="true"
 BACKEND_PORT="3001"
 CLIENT_PORT="3002"
 MAPBOX_TOKEN=""
 
-# Help function
+# 帮助函数
 show_help() {
-  echo "Usage: $0 <domain_name> [options]"
-  echo "Example: $0 myapp.example.com"
-  echo "Example with no webserver: $0 myapp.example.com --no-webserver"
+  echo "用法: $0 <域名> [选项]"
+  echo "示例: $0 myapp.example.com"
+  echo "不使用web服务器的示例: $0 myapp.example.com --no-webserver"
   echo ""
-  echo "Options:"
-  echo "  --no-webserver          Disable the built-in Caddy webserver"
-  echo "  --backend-port <port>   Set custom host port for backend (default: 3001)"
-  echo "  --client-port <port>    Set custom host port for client (default: 3002)"
-  echo "  --mapbox-token <token>  Set Mapbox API token (optional but recommended for maps)"
-  echo "  --help                  Show this help message"
+  echo "选项:"
+  echo "  --no-webserver          禁用内置的Caddy web服务器"
+  echo "  --backend-port <端口>   设置后端的自定义主机端口（默认：3001）"
+  echo "  --client-port <端口>    设置客户端的自定义主机端口（默认：3002）"
+  echo "  --mapbox-token <令牌>   设置Mapbox API令牌（可选但推荐用于地图）"
+  echo "  --help                  显示此帮助信息"
 }
 
-# Parse arguments
+# 解析参数
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     --no-webserver) 
@@ -32,7 +32,7 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --backend-port)
       if [[ -z "$2" || "$2" =~ ^- ]]; then
-        echo "Error: --backend-port requires a port number"
+        echo "错误: --backend-port 需要端口号"
         show_help
         exit 1
       fi
@@ -41,7 +41,7 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --client-port)
       if [[ -z "$2" || "$2" =~ ^- ]]; then
-        echo "Error: --client-port requires a port number"
+        echo "错误: --client-port 需要端口号"
         show_help
         exit 1
       fi
@@ -50,7 +50,7 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --mapbox-token)
       if [[ -z "$2" || "$2" =~ ^- ]]; then
-        echo "Error: --mapbox-token requires a token value"
+        echo "错误: --mapbox-token 需要令牌值"
         show_help
         exit 1
       fi
@@ -62,7 +62,7 @@ while [[ "$#" -gt 0 ]]; do
       exit 0
       ;;
     -*)
-      echo "Unknown option: $1"
+      echo "未知选项: $1"
       show_help
       exit 1
       ;;
@@ -70,7 +70,7 @@ while [[ "$#" -gt 0 ]]; do
       if [ -z "$DOMAIN_NAME" ]; then
         DOMAIN_NAME="$1"
       else
-        echo "Error: Only one domain name can be specified"
+        echo "错误: 只能指定一个域名"
         show_help
         exit 1
       fi
@@ -79,86 +79,86 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 
-# Check if domain name argument is provided
+# 检查是否提供了域名参数
 if [ -z "$DOMAIN_NAME" ]; then
-  echo "Error: Domain name is required"
+  echo "错误: 域名是必需的"
   show_help
   exit 1
 fi
 
 BASE_URL="https://${DOMAIN_NAME}"
 
-# Generate a secure random secret for BETTER_AUTH_SECRET
-# Uses OpenSSL if available, otherwise falls back to /dev/urandom
+# 为BETTER_AUTH_SECRET生成安全的随机密钥
+# 如果可用则使用OpenSSL，否则回退到/dev/urandom
 if command -v openssl &> /dev/null; then
     BETTER_AUTH_SECRET=$(openssl rand -hex 32)
 elif [ -e /dev/urandom ]; then
     BETTER_AUTH_SECRET=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)
 else
-    echo "Error: Could not generate secure secret. Please install openssl or ensure /dev/urandom is available." >&2
+    echo "错误: 无法生成安全密钥。请安装openssl或确保/dev/urandom可用。" >&2
     exit 1
 fi
 
-# Create or overwrite the .env file
-echo "Creating .env file..."
+# 创建或覆盖.env文件
+echo "正在创建.env文件..."
 
-# Start building the .env file with required variables
+# 开始构建包含必要变量的.env文件
 cat > .env << EOL
-# Required variables configured by setup.sh
+# 由setup.sh配置的必要变量
 DOMAIN_NAME=${DOMAIN_NAME}
 BASE_URL=${BASE_URL}
 BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
 DISABLE_SIGNUP=false
 EOL
 
-# Add MAPBOX_TOKEN if provided
+# 如果提供了MAPBOX_TOKEN则添加
 if [ -n "$MAPBOX_TOKEN" ]; then
   echo "MAPBOX_TOKEN=${MAPBOX_TOKEN}" >> .env
 fi
 
-# Only add port variables if using custom ports or no webserver
+# 仅当使用自定义端口或无web服务器时添加端口变量
 if [ "$USE_WEBSERVER" = "false" ]; then
-  # When not using the built-in webserver, expose ports to all interfaces
+  # 当不使用内置web服务器时，将端口暴露给所有接口
   if [ "$BACKEND_PORT" != "3001" ] || [ "$CLIENT_PORT" != "3002" ]; then
-    # Custom ports specified
+    # 指定了自定义端口
     echo "HOST_BACKEND_PORT=\"${BACKEND_PORT}:3001\"" >> .env
     echo "HOST_CLIENT_PORT=\"${CLIENT_PORT}:3002\"" >> .env
   else
-    # Default ports, just expose them
+    # 默认端口，直接暴露它们
     echo "HOST_BACKEND_PORT=\"3001:3001\"" >> .env
     echo "HOST_CLIENT_PORT=\"3002:3002\"" >> .env
   fi
 elif [ "$BACKEND_PORT" != "3001" ] || [ "$CLIENT_PORT" != "3002" ]; then
-  # Using webserver but with custom ports - bind to localhost only
+  # 使用web服务器但使用自定义端口 - 仅绑定到localhost
   echo "HOST_BACKEND_PORT=\"127.0.0.1:${BACKEND_PORT}:3001\"" >> .env
   echo "HOST_CLIENT_PORT=\"127.0.0.1:${CLIENT_PORT}:3002\"" >> .env
 fi
 
-# Add USE_WEBSERVER only if it's false (since true is the default behavior)
+# 仅当为false时添加USE_WEBSERVER（因为true是默认行为）
 if [ "$USE_WEBSERVER" = "false" ]; then
   echo "USE_WEBSERVER=false" >> .env
 fi
 
-echo ".env file created successfully with domain ${DOMAIN_NAME}."
+echo ".env文件已成功创建，域名为 ${DOMAIN_NAME}。"
 if [ "$USE_WEBSERVER" = "false" ]; then
-  echo "Caddy webserver is disabled. You'll need to set up your own webserver."
+  echo "Caddy web服务器已禁用。您需要设置自己的web服务器。"
   if [ "$BACKEND_PORT" = "3001" ] && [ "$CLIENT_PORT" = "3002" ]; then
-    echo "The backend service will be available on port 3001 and the client on port 3002."
+    echo "后端服务将在端口3001上可用，客户端在端口3002上可用。"
   else 
-    echo "The backend service will be available on port ${BACKEND_PORT} (mapped to container port 3001)"
-    echo "The client service will be available on port ${CLIENT_PORT} (mapped to container port 3002)"
+    echo "后端服务将在端口${BACKEND_PORT}上可用（映射到容器端口3001）"
+    echo "客户端服务将在端口${CLIENT_PORT}上可用（映射到容器端口3002）"
   fi
 fi
 
-# Build and start the Docker Compose stack
-echo "Building and starting Docker services..."
+# 构建并启动Docker Compose堆栈
+echo "正在构建和启动Docker服务..."
 if [ "$USE_WEBSERVER" = "false" ]; then
-  # Start without the caddy service when using --no-webserver
+  # 使用--no-webserver时不启动caddy服务
   docker compose up -d
 else
-  # Start all services including caddy
+  # 启动包括caddy在内的所有服务
   docker compose --profile with-webserver up -d
 fi
 
-echo "Setup complete. Services are starting in the background."
-echo "You can monitor logs with: docker compose logs -f" 
+echo "设置完成。服务正在后台启动。"
+echo "您可以使用以下命令监控日志: docker compose logs -f"

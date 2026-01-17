@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+这是一个使用[`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app)引导的[Next.js](https://nextjs.org)项目。
 
-## Getting Started
+## 快速开始
 
-First, run the development server:
+首先，运行开发服务器：
 
 ```bash
 npm run dev
-# or
+# 或
 yarn dev
-# or
+# 或
 pnpm dev
-# or
+# 或
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+在浏览器中打开[http://localhost:3000](http://localhost:3000)查看结果。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+您可以通过修改`app/page.tsx`来开始编辑页面。页面会在您编辑文件时自动更新。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+本项目使用[`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts)来自动优化和加载[Geist](https://vercel.com/font)，这是Vercel的新字体系列。
 
-## Learn More
+## 了解更多
 
-To learn more about Next.js, take a look at the following resources:
+要了解更多关于Next.js的信息，请查看以下资源：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Next.js文档](https://nextjs.org/docs) - 了解Next.js特性和API。
+- [学习Next.js](https://nextjs.org/learn) - 交互式Next.js教程。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+您可以查看[Next.js GitHub仓库](https://github.com/vercel/next.js) - 欢迎您的反馈和贡献！
 
-## Deploy on Vercel
+## 在Vercel上部署
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+部署Next.js应用程序最简单的方法是使用Next.js创建者提供的[Vercel平台](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+查看我们的[Next.js部署文档](https://nextjs.org/docs/app/building-your-application/deploying)了解更多详情。
