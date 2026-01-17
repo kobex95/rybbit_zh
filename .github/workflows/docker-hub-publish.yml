@@ -13,7 +13,7 @@ env:
   DOCKER_REGISTRY: docker.io
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  DOCKER_REPOSITORY: kobex95/rybbit
+  DOCKER_REPOSITORY: kobex/rybbit_zh
 
 jobs:
   build-and-push:
